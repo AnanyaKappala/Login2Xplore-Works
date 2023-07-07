@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Employee Form</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://login2explore.com/jpdb/resources/js/0.0.4/jpdb-commons.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>Employee Form</h2>
+    <form id="empForm" onsubmit="return false;">
+      <div class="form-group">
+        <label for="empId">Employee ID:</label>
+        <input type="text" class="form-control" id="empId" placeholder="Enter Employee ID" oninput="checkEmpId();" required>
+      </div>
+      <div class="form-group">
+        <label for="empName">Employee Name:</label>
+        <input type="text" class="form-control" id="empName" placeholder="Enter Employee Name" required>
+      </div>
+      <div class="form-group">
+        <label for="empSalary">Salary:</label>
+        <input type="number" class="form-control" id="empSalary" placeholder="Enter Salary" required>
+      </div>
+      <div class="form-group">
+        <label for="empHRA">HRA:</label>
+        <input type="number" class="form-control" id="empHRA" placeholder="Enter HRA" required>
+      </div>
+      <div class="form-group">
+        <label for="empDA">DA:</label>
+        <input type="number" class="form-control" id="empDA" placeholder="Enter DA" required>
+      </div>
+      <div class="form-group">
+        <label for="empDeduction">Deduction:</label>
+        <input type="number" class="form-control" id="empDeduction" placeholder="Enter Deduction" required>
+      </div>
+      <div class="form-group">
+        <button type="button" class="btn btn-primary" id="saveBtn" onclick="saveEmployee();">Save</button>
+        <button type="button" class="btn btn-primary" id="changeBtn" onclick="changeEmployee();">Change</button>
+        <button type="button" class="btn btn-default" id="resetBtn" onclick="resetForm();">Reset</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    var dbBaseUrl = "http://api.login2explore.com:5577";
+    var apiEndPointUrl = "/api/iml";
+    var connectionToken = "90933019|-31949323366661466|90949789";
+
+    function checkEmpId() {
+      var empId = $("#empId").val();
+      if (empId !== "") {
+        var reqString = createGETRequest(connectionToken, empId, "EMP-DB", "EmpData");
+        var resultObj = executeCommandAtGivenBaseUrl(reqString, dbBaseUrl, apiEndPointUrl);
+        if (resultObj.status === 200) {
+          enableChangeResetButtons();
+          loadEmployeeData(resultObj.body[0]);
+        } else {
+          enableSaveResetButtons();
+        }
+      } else {
+        disableAllButtons();
+      }
+    }
+
+    function enableSaveResetButtons() {
+      $("#saveBtn").prop("disabled", false);
+      $("#resetBtn").prop("disabled", false);
+      $("#changeBtn").prop("disabled", true);
+    }
+
+    function enableChangeResetButtons() {
+      $("#changeBtn").prop("disabled", false);
+      $("#resetBtn").prop("disabled", false);
+      $("#saveBtn").prop("disabled", true);
+    }
+
+    function disableAllButtons() {
+      $("#saveBtn").prop("disabled", true);
+      $("#changeBtn").prop("disabled", true);
+      $("#resetBtn").prop("disabled", true);
+    }
+
+    function loadEmployeeData(employee) {
+      $("#empName").val(employee.name);
+      $("#empSalary").val(employee.salary);
+      $("#empHRA").val(employee.hra);
+      $("#empDA").val(employee.da);
+      $("#empDeduction").val(employee.deduction);
+      $("#empName").focus();
+    }
+
+    function createGETRequest(connToken, id, dbName, relName) {
+      var getRequest = {
+        token: connToken,
+        dbName: dbName,
+        cmd: "GET",
+        rel: relName,
+        jsonStr: JSON.stringify({ id: id })
+      };
+      return JSON.stringify(getRequest);
+    }
+
+    function createPUTRequest(connToken, employee, dbName, relName) {
+      var putRequest = {
+        token: connToken,
+        dbName: dbName,
+        cmd: "PUT",
+        rel: relName,
+        jsonStr: JSON.stringify(employee)
+      };
+      return JSON.stringify(putRequest);
+    }
+
+    function executeCommandAtGivenBaseUrl(reqString, baseUrl, endPointUrl) {
+      var url = baseUrl + endPointUrl;
+      var response;
+      $.ajax({
+        url: url,
+        type: "POST",
+        data: reqString,
+        async: false,
+        success: function (result) {
+          response = JSON.parse(result);
+        },
+        error: function (result) {
+          response = JSON.parse(result.responseText);
+        }
+      });
+      return response;
+    }
+
+    function saveEmployee() {
+      var empId = $("#empId").val();
+      var empName = $("#empName").val();
+      var empSalary = $("#empSalary").val();
+      var empHRA = $("#empHRA").val();
+      var empDA = $("#empDA").val();
+      var empDeduction = $("#empDeduction").val();
+
+      var employee = {
+        id: empId,
+        name: empName,
+        salary: empSalary,
+        hra: empHRA,
+        da: empDA,
+        deduction: empDeduction
+      };
+
+      var reqString = createPUTRequest(connectionToken, employee, "EMP-DB", "EmpData");
+      var resultObj = executeCommandAtGivenBaseUrl(reqString, dbBaseUrl, apiEndPointUrl);
+      if (resultObj.status === 200) {
+        alert("Employee data saved successfully.");
+        resetForm();
+      } else {
+        alert("Errorsaving employee data. Please try again.");
+      }
+    }
+
+    function changeEmployee() {
+      var empId = $("#empId").val();
+      var empName = $("#empName").val();
+      var empSalary = $("#empSalary").val();
+      var empHRA = $("#empHRA").val();
+      var empDA = $("#empDA").val();
+      var empDeduction = $("#empDeduction").val();
+
+      var employee = {
+        id: empId,
+        name: empName,
+        salary: empSalary,
+        hra: empHRA,
+        da: empDA,
+        deduction: empDeduction
+      };
+
+      var reqString = createPUTRequest(connectionToken, employee, "EMP-DB", "EmpData");
+      var resultObj = executeCommandAtGivenBaseUrl(reqString, dbBaseUrl, apiEndPointUrl);
+      if (resultObj.status === 200) {
+        alert("Employee data updated successfully.");
+        resetForm();
+      } else {
+        alert("Error updating employee data. Please try again.");
+      }
+    }
+
+    function resetForm() {
+      $("#empForm")[0].reset();
+      $("#empId").focus();
+      disableAllButtons();
+    }
+
+    $(document).ready(function () {
+      disableAllButtons();
+      $("#empId").focus();
+    });
+  </script>
+</body>
+</html>

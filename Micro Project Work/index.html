@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Enrollment Form</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src=" http://login2explore.com/jpdb/resources/js/0.0.3/jpdb-commons.js "></script>
+</head>
+
+<body>
+  <div class="container">
+    <h2>Student Enrollment Form</h2>
+    <form id="enrollmentForm">
+      <div class="form-group">
+        <label for="rollNo">Roll No:</label>
+        <input type="text" class="form-control" id="rollNo" placeholder="Enter Roll No" autofocus>
+      </div>
+      <div class="form-group">
+        <label for="fullName">Full Name:</label>
+        <input type="text" class="form-control" id="fullName" placeholder="Enter Full Name" >
+      </div>
+      <div class="form-group">
+        <label for="class">Class:</label>
+        <input type="text" class="form-control" id="class" placeholder="Enter Class" >
+      </div>
+      <div class="form-group">
+        <label for="birthDate">Birth Date:</label>
+        <input type="text" class="form-control" id="birthDate" placeholder="Enter Birth Date" >
+      </div>
+      <div class="form-group">
+        <label for="address">Address:</label>
+        <input type="text" class="form-control" id="address" placeholder="Enter Address" >
+      </div>
+      <div class="form-group">
+        <label for="enrollmentDate">Enrollment Date:</label>
+        <input type="text" class="form-control" id="enrollmentDate" placeholder="Enter Enrollment Date" >
+      </div>
+      <button type="button" class="btn btn-primary" id="saveBtn" >Save</button>
+      <button type="button" class="btn btn-primary" id="updateBtn" >Update</button>
+      <button type="button" class="btn btn-default" id="resetBtn" >Reset</button>
+    </form>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="jpdb-commons.js"></script>
+  <script>
+    $(document).ready(function () {
+      $("#rollNo").focus();
+
+      function disableFieldsAndButtons() {
+        $("#enrollmentForm input[type='text']").not("#rollNo").prop("disabled", true);
+        $("#saveBtn, #updateBtn, #resetBtn").prop("disabled", true);
+      }
+
+      function enableSaveResetButtons() {
+        $("#saveBtn, #resetBtn").prop("disabled", false);
+      }
+
+      function enableUpdateResetButtons() {
+        $("#updateBtn, #resetBtn").prop("disabled", false);
+      }
+
+      function resetForm() {
+        $("#enrollmentForm input[type='text']").val("");
+        $("#rollNo").focus();
+      }
+
+      function validateFormData() {
+        var rollNo = $("#rollNo").val();
+        var fullName = $("#fullName").val();
+        var className = $("#class").val();
+        var birthDate = $("#birthDate").val();
+        var address = $("#address").val();
+        var enrollmentDate = $("#enrollmentDate").val();
+
+        if (rollNo === "" || fullName === "" || className === "" || birthDate === "" || address === "" || enrollmentDate === "") {
+          alert("All fields are required!");
+          return false;
+        }
+
+        return true;
+      }
+
+      function saveStudentData() {
+        var rollNo = $("#rollNo").val();
+        var fullName = $("#fullName").val();
+        var className = $("#class").val();
+        var birthDate = $("#birthDate").val();
+        var address = $("#address").val();
+        var enrollmentDate = $("#enrollmentDate").val();
+
+        var jsonData = {
+          "Roll-No": rollNo,
+          "Full-Name": fullName,
+          "Class": className,
+          "Birth-Date": birthDate,
+          "Address": address,
+          "Enrollment-Date": enrollmentDate
+        };
+
+        var putRequest = createPUTRequest("90933019|-31949323398625448|90949787", JSON.stringify(jsonData), "SCHOOL-DB", "STUDENT-TABLE");
+
+        var resultObj = executeCommandAtGivenBaseUrl(putRequest, "http://api.login2explore.com:5577", "/api/iml");
+        alert(JSON.stringify(resultObj));
+      }
+
+      function checkRollNoExists() {
+        var rollNo = $("#rollNo").val();
+
+        var getRequest = createGETRequest("90933019|-31949323398625448|90949787", "SCHOOL-DB", "STUDENT-TABLE", { "Roll-No": rollNo });
+
+        var resultObj = executeCommandAtGivenBaseUrl(getRequest, "http://api.login2explore.com:5577", "/api/iml");
+
+        if (resultObj && resultObj.data && resultObj.data.length > 0) {
+          enableUpdateResetButtons();
+          $("#fullName").val(resultObj.data[0]["Full-Name"]).prop("disabled", false).focus();
+          $("#class").val(resultObj.data[0]["Class"]).prop("disabled", false);
+          $("#birthDate").val(resultObj.data[0]["Birth-Date"]).prop("disabled", false);
+          $("#address").val(resultObj.data[0]["Address"]).prop("disabled", false);
+          $("#enrollmentDate").val(resultObj.data[0]["Enrollment-Date"]).prop("disabled", false);
+        } else {
+          enableSaveResetButtons();
+          $("#fullName").prop("disabled", false).focus();
+          $("#class").prop("disabled", false);
+          $("#birthDate").prop("disabled", false);
+          $("#address").prop("disabled", false);
+          $("#enrollmentDate").prop("disabled", false);
+        }
+      }
+
+      $("#rollNo").on("blur", function () {
+        checkRollNoExists();
+      });
+
+      $("#saveBtn").on("click", function () {
+        if (validateFormData()) {
+          saveStudentData();
+          resetForm();
+          disableFieldsAndButtons();
+        }
+      });
+
+      $("#updateBtn").on("click", function () {
+        if (validateFormData()) {
+          saveStudentData();
+          resetForm();
+          disableFieldsAndButtons();
+        }
+      });
+
+      $("#resetBtn").on("click", function () {
+        resetForm();
+        disableFieldsAndButtons();
+      });
+
+      disableFieldsAndButtons();
+    });
+  </script>
+</body>
+
+</html>
