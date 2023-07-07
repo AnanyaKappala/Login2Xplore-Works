@@ -42,3 +42,4 @@ The project is currently in active development. Bug fixes and feature enhancemen
 ## Sources
 - [JsonPowerDB Documentation](https://login2explore.com/jpdb/docs.html)
 - [Bootstrap Framework](https://getbootstrap.com/)
+- [JsonPowerDB Functions](https://login2explore.com/jpdb/resources/js/0.0.4/jpdb-commons.js)
